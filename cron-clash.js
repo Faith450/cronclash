@@ -115,7 +115,6 @@ function checkCollisions() {
   });
 
   if (collisions.length > 0) {
-    
     alertCard.className = "rounded-xl bg-red-500/10 dark:bg-red-950/40 p-4 border border-red-200 dark:border-red-800/50 transition-colors";
     statusDot.className = "h-2 w-2 rounded-full bg-red-500 animate-pulse";
     alertTitle.className = "text-red-700 dark:text-red-400 font-medium text-sm flex items-center gap-2";
@@ -242,8 +241,16 @@ function displayInput() {
     
     const badgeColor = trackColors[index % trackColors.length];
 
-    
-    inputList.innerHTML += `     
+    // Compute transform alignment to prevent edge badge clipping
+    const numPercent = parseFloat(percentage);
+    let alignmentClass = "-translate-x-1/2";
+    if (numPercent <= 5) {
+      alignmentClass = "translate-x-0";
+    } else if (numPercent >= 95) {
+      alignmentClass = "-translate-x-full";
+    }
+
+    inputList.innerHTML += `    
       <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 gap-2.5 w-full">
         <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 flex-1 min-w-0">
           <div class="flex items-center gap-2">
@@ -279,16 +286,15 @@ function displayInput() {
       </div>
     `;
 
-    
     if (taskTracksList) {
       taskTracksList.innerHTML += `
         <li class="flex items-center gap-4 py-1">
           <div class="w-24 sm:w-28 shrink-0 truncate">
             <span class="text-slate-700 dark:text-zinc-200 text-sm font-medium truncate block" title="${input.task}">${input.task}</span>
           </div>
-          <div class="relative flex-1 h-7 bg-slate-200/80 dark:bg-zinc-800 rounded-lg border border-slate-300/80 dark:border-zinc-700/80 p-0.5 overflow-hidden">
+          <div class="relative flex-1 h-7 bg-slate-200/80 dark:bg-zinc-800 rounded-lg border border-slate-300/80 dark:border-zinc-700/80 p-0.5">
             <span 
-              class="absolute top-1/2 -translate-y-1/2 ${badgeColor} text-white text-xs px-2 py-0.5 rounded-md font-mono shadow-sm transition-all -translate-x-1/2 whitespace-nowrap"
+              class="absolute top-1/2 -translate-y-1/2 ${badgeColor} text-white text-xs px-2 py-0.5 rounded-md font-mono shadow-sm transition-all ${alignmentClass} whitespace-nowrap"
               style="left: ${percentage}%;"
               aria-label="Scheduled at ${timeText}"
             >
