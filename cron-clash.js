@@ -24,13 +24,19 @@ function formatCronToEnglish(cronString) {
   const monthPart = parts[3];
   const dayOfWeekPart = parts[4];
 
-  const minute = isNaN(parseInt(minPart)) ? 0 : parseInt(minPart);
-  const hour24 = isNaN(parseInt(hourPart)) ? 0 : parseInt(hourPart);
+  
+  let timeString = "";
+  if (minPart === '*' && hourPart === '*') {
+    timeString = "every minute";
+  } else {
+    const minute = isNaN(parseInt(minPart)) ? 0 : parseInt(minPart);
+    const hour24 = isNaN(parseInt(hourPart)) ? 0 : parseInt(hourPart);
 
-  const period = hour24 >= 12 ? 'PM' : 'AM';
-  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-  const formattedMin = String(minute).padStart(2, '0');
-  const timeString = `${hour12}:${formattedMin} ${period}`;
+    const period = hour24 >= 12 ? 'PM' : 'AM';
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const formattedMin = String(minute).padStart(2, '0');
+    timeString = `At ${hour12}:${formattedMin} ${period}`;
+  }
 
   const daysMap = {
     '0': 'Sunday', '1': 'Monday', '2': 'Tuesday',
@@ -48,27 +54,39 @@ function formatCronToEnglish(cronString) {
   const hasMonth = monthPart !== '*';
   const hasDayOfWeek = dayOfWeekPart !== '*' && daysMap[dayOfWeekPart];
 
-  let conditions = [];
+  let dateContext = "";
 
-  if (hasDayOfWeek) {
-    conditions.push(`every ${daysMap[dayOfWeekPart]}`);
-  }
-
-  if (hasDayOfMonth && hasMonth) {
+  
+  if (hasDayOfWeek && hasMonth && hasDayOfMonth) {
     const formattedDay = getOrdinalSuffix(parseInt(dayOfMonthPart));
     const monthName = monthsMap[monthPart] || `Month ${monthPart}`;
-    conditions.push(`on ${monthName} ${formattedDay}`);
-  } else if (hasDayOfMonth) {
-    const formattedDay = getOrdinalSuffix(parseInt(dayOfMonthPart));
-    conditions.push(`on the ${formattedDay} of the month`);
-  } else if (hasMonth) {
+    dateContext = `, on ${daysMap[dayOfWeekPart]}, ${monthName} ${formattedDay}`;
+  } 
+  else if (hasDayOfWeek && hasMonth) {
     const monthName = monthsMap[monthPart] || `Month ${monthPart}`;
-    conditions.push(`in ${monthName}`);
+    dateContext = `, every ${daysMap[dayOfWeekPart]} in ${monthName}`;
+  } 
+  else if (hasMonth && hasDayOfMonth) {
+    const formattedDay = getOrdinalSuffix(parseInt(dayOfMonthPart));
+    const monthName = monthsMap[monthPart] || `Month ${monthPart}`;
+    dateContext = `, on ${monthName} ${formattedDay}`;
+  } 
+  else if (hasDayOfWeek) {
+    dateContext = `, every ${daysMap[dayOfWeekPart]}`;
+  } 
+  else if (hasDayOfMonth) {
+    const formattedDay = getOrdinalSuffix(parseInt(dayOfMonthPart));
+    dateContext = `, on the ${formattedDay} of the month`;
+  } 
+  else if (hasMonth) {
+    const monthName = monthsMap[monthPart] || `Month ${monthPart}`;
+    dateContext = `, every day in ${monthName}`;
+  } 
+  else {
+    dateContext = " every day";
   }
 
-  let dateContext = conditions.length > 0 ? conditions.join(' ') : 'every day';
-
-  return `At ${timeString} ${dateContext}`;
+  return `${timeString}${dateContext}`;
 }
 
 function getCronPercentage(cronString) {
@@ -128,7 +146,6 @@ function checkCollisions() {
     alertMessage.className = "text-red-600/90 dark:text-zinc-400 text-xs mt-1";
     alertMessage.innerHTML = `Overlapping schedules: ${details}`;
   } else {
-    // Clean State
     alertCard.className = "rounded-xl bg-emerald-500/10 dark:bg-emerald-950/40 p-4 border border-emerald-200 dark:border-emerald-800/50 transition-colors";
     statusDot.className = "h-2 w-2 rounded-full bg-emerald-500";
     alertTitle.className = "text-emerald-700 dark:text-emerald-400 font-medium text-sm flex items-center gap-2";
@@ -241,7 +258,7 @@ function displayInput() {
     
     const badgeColor = trackColors[index % trackColors.length];
 
-    // Compute transform alignment to prevent edge badge clipping
+    
     const numPercent = parseFloat(percentage);
     let alignmentClass = "-translate-x-1/2";
     if (numPercent <= 5) {
@@ -261,7 +278,7 @@ function displayInput() {
               ${input.cron}
             </span>
           </div>
-          <span class="text-xs text-slate-500 dark:text-zinc-400 truncate flex-1 min-w-0" title="${englishDescription}">
+          <span class="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 flex-1 min-w-0" title="${englishDescription}">
             ${englishDescription}
           </span>
         </div>
